@@ -1,1 +1,178 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sat May  3 19:22:10 2025
+@author: DELL
+"""
 
+import random
+import time
+import matplotlib.pyplot as plt
+
+# Randomized BST
+class BSTNode:
+    def __init__(self, key):
+        self.key = key
+        self.left = self.right = None
+
+class RandomizedBST:
+    def __init__(self):
+        self.root = None
+
+    def insert(self, key):
+        def _insert(node, key):
+            if not node:
+                return BSTNode(key)
+            if random.random() < 0.5:
+                node.left = _insert(node.left, key)
+            else:
+                node.right = _insert(node.right, key)
+            return node
+        self.root = _insert(self.root, key)
+
+    def search(self, key):
+        steps = 0
+        node = self.root
+        while node:
+            steps += 1
+            if key == node.key:
+                return True, steps
+            elif key < node.key:
+                node = node.left
+            else:
+                node = node.right
+        return False, steps
+
+# Skip List
+class SkipListNode:
+    def __init__(self, key, level):
+        self.key = key
+        self.forward = [None] * (level + 1)
+
+class SkipList:
+    MaxLevel = 16
+    P = 0.5
+
+    def __init__(self):
+        self.header = SkipListNode(None, self.MaxLevel)
+        self.level = 0
+
+    def random_level(self):
+        lvl = 0
+        while random.random() < self.P and lvl < self.MaxLevel:
+            lvl += 1
+        return lvl
+
+    def insert(self, key):
+        update = [None] * (self.MaxLevel + 1)
+        current = self.header
+        for i in reversed(range(self.level + 1)):
+            while current.forward[i] and current.forward[i].key < key:
+                current = current.forward[i]
+            update[i] = current
+        current = current.forward[0]
+
+        if current is None or current.key != key:
+            lvl = self.random_level()
+            if lvl > self.level:
+                for i in range(self.level + 1, lvl + 1):
+                    update[i] = self.header
+                self.level = lvl
+            newNode = SkipListNode(key, lvl)
+            for i in range(lvl + 1):
+                newNode.forward[i] = update[i].forward[i]
+                update[i].forward[i] = newNode
+
+    def search(self, key):
+        steps = 0
+        current = self.header
+        for i in reversed(range(self.level + 1)):
+            while current.forward[i] and current.forward[i].key < key:
+                current = current.forward[i]
+                steps += 1
+            steps += 1
+        current = current.forward[0]
+        if current and current.key == key:
+            return True, steps
+        return False, steps
+
+# Experiment
+sizes = [50_000, 100_000, 200_000, 500_000]
+bstAvgSteps = []
+skiplistAvgSteps = []
+bstTimes = []
+skiplistTimes = []
+
+for n in sizes:
+    print(f"\nn = {n}")
+    searchTrials = n
+    data = random.sample(range(n * 10), n)
+
+    bst = RandomizedBST()
+    skiplist = SkipList()
+
+    for num in data:
+        bst.insert(num)
+        skiplist.insert(num)
+
+    present = random.sample(data, searchTrials // 2)
+    notPresentPool = list(set(range(n * 10)) - set(data))
+    notPresent = random.sample(notPresentPool, searchTrials // 2)
+    queries = present + notPresent
+    random.shuffle(queries)
+
+    bstSteps = []
+    skiplistSteps = []
+
+    # BST хугацаа
+    startTime = time.time()
+    for q in queries:
+        _, steps_bst = bst.search(q)
+        bstSteps.append(steps_bst)
+    endTime = time.time()
+    bstTime = (endTime - startTime) * 1000  # ms
+
+    # SkipList хугацаа
+    startTime = time.time()
+    for q in queries:
+        _, stepsSkip = skiplist.search(q)
+        skiplistSteps.append(stepsSkip)
+    endTime = time.time()
+    skiplistTime = (endTime - startTime) * 1000  # ms
+
+    # Дундаж алхам
+    avgBst = sum(bstSteps) / len(bstSteps)
+    avgSkip = sum(skiplistSteps) / len(skiplistSteps)
+
+    bstAvgSteps.append(avgBst)
+    skiplistAvgSteps.append(avgSkip)
+    bstTimes.append(bstTime)
+    skiplistTimes.append(skiplistTime)
+
+    print(f"   Randomized BST: avg steps = {avgBst:.2f}, time = {bstTime:.2f} ms")
+    print(f"   Skip List     : avg steps = {avgSkip:.2f}, time = {skiplistTime:.2f} ms")
+
+
+plt.figure(figsize=(12, 5))
+
+# Дундаж алхам
+plt.subplot(1, 2, 1)
+plt.plot(sizes, bstAvgSteps, label='Randomized BST', marker='o', color='skyblue')
+plt.plot(sizes, skiplistAvgSteps, label='Skip List', marker='s', color='orange')
+plt.title('Дундаж хайлтын алхам')
+plt.xlabel('Оролтын хэмжээ (n)')
+plt.ylabel('Дундаж алхам')
+plt.legend()
+plt.grid(True)
+
+# Хугацаа
+plt.subplot(1, 2, 2)
+plt.plot(sizes, bstTimes, label='Randomized BST', marker='o', color='skyblue')
+plt.plot(sizes, skiplistTimes, label='Skip List', marker='s', color='orange')
+plt.title('Хайлтын нийт хугацаа')
+plt.xlabel('Оролтын хэмжээ (n)')
+plt.ylabel('Хугацаа (мс)')
+plt.legend()
+plt.grid(True)
+
+plt.tight_layout()
+plt.show()
