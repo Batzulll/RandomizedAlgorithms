@@ -1,0 +1,102 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sat May  4 2025
+@author: DELL
+"""
+
+import random
+import time
+import matplotlib.pyplot as plt
+
+def swap(A, i, j):
+    A[i], A[j] = A[j], A[i]
+
+def randomized_partition(A, lo, hi):
+    pivotIndex = random.randint(lo, hi)
+    swap(A, pivotIndex, hi)
+
+    pivot = A[hi]
+    i = lo - 1
+    for j in range(lo, hi):
+        if A[j] <= pivot:
+            i += 1
+            swap(A, i, j)
+    swap(A, i + 1, hi)
+    return i + 1
+
+#QuickSelect
+
+def quick_select(A, lo, hi, k):
+    if lo == hi:
+        return A[lo]
+
+    pivotIndex = randomized_partition(A, lo, hi)
+    numElements = pivotIndex - lo + 1
+
+    if k == numElements:
+        return A[pivotIndex]
+    elif k < numElements:
+        return quick_select(A, lo, pivotIndex - 1, k)
+    else:
+        return quick_select(A, pivotIndex + 1, hi, k - numElements)
+
+#QuickSort
+
+def quick_sort(A, lo, hi):
+    if lo < hi:
+        p = randomized_partition(A, lo, hi)
+        quick_sort(A, lo, p - 1)
+        quick_sort(A, p + 1, hi)
+
+
+def generate_random_array(n, maxValue=1_000_000_000):
+    return [random.randint(0, maxValue) for _ in range(n)]
+
+
+def main():
+    sizes = [10_000, 20_000, 40_000, 80_000, 160_000]
+    qsTimes = []
+    qselTimes = []
+
+    for n in sizes:
+        print(f"\n=== Оролтын хэмжээ n = {n} ===")
+        A = generate_random_array(n)
+
+        #QuickSelect
+        totalQsel = 0
+        for _ in range(3):
+            temp = A.copy()
+            k = random.randint(1, n)
+            start = time.time()
+            quick_select(temp, 0, n - 1, k)
+            end = time.time()
+            totalQsel += (end - start) * 1000
+        avgQsel = totalQsel / 3
+        qselTimes.append(avgQsel)
+        print(f"QuickSelect дундаж: {avgQsel:.2f} ms")
+
+        #QuickSort
+        totalQs = 0
+        for _ in range(3):
+            temp = A.copy()
+            start = time.time()
+            quick_sort(temp, 0, n - 1)
+            end = time.time()
+            totalQs += (end - start) * 1000
+        avgQs = totalQs / 3
+        qsTimes.append(avgQs)
+        print(f"QuickSort дундаж:   {avgQs:.2f} ms")
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(sizes, qselTimes, marker='o', label='QuickSelect', color='skyblue')
+    plt.plot(sizes, qsTimes, marker='s', label='QuickSort', color='orange')
+    plt.title('QuickSelect vs QuickSort - Дундаж хугацааны харьцуулалт')
+    plt.xlabel('Оролтын хэмжээ (n)')
+    plt.ylabel('Дундаж хугацаа (ms)')
+    plt.grid(True)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+if __name__ == "__main__":
+    main()
