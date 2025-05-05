@@ -64,26 +64,26 @@ def main():
 
         #QuickSelect
         totalQsel = 0
-        for _ in range(3):
+        for _ in range(100):
             temp = A.copy()
             k = random.randint(1, n)
             start = time.time()
             quick_select(temp, 0, n - 1, k)
             end = time.time()
             totalQsel += (end - start) * 1000
-        avgQsel = totalQsel / 3
+        avgQsel = totalQsel / 100
         qselTimes.append(avgQsel)
         print(f"QuickSelect дундаж: {avgQsel:.2f} ms")
 
         #QuickSort
         totalQs = 0
-        for _ in range(3):
+        for _ in range(100):
             temp = A.copy()
             start = time.time()
             quick_sort(temp, 0, n - 1)
             end = time.time()
             totalQs += (end - start) * 1000
-        avgQs = totalQs / 3
+        avgQs = totalQs / 100
         qsTimes.append(avgQs)
         print(f"QuickSort дундаж:   {avgQs:.2f} ms")
 
