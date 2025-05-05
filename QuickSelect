@@ -8,6 +8,10 @@ Created on Sat May  3 16:39:23 2025
 import random
 import time
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FuncFormatter
+
+def format_number(x, pos):
+    return f'{int(x):,}' 
 
 def swap(A, i, j):
     A[i], A[j] = A[j], A[i]
@@ -70,12 +74,17 @@ def main():
         print(f"n = {n} үед дундаж хугацаа: {avgTime:.2f} ms")
         print("-------------------------------------")
 
+    # --- График ---
     plt.figure(figsize=(10, 6))
     plt.plot(sizes, avgTimes, marker='o', linestyle='-', color='skyblue')
     plt.title('Quick Select-ийн дундаж хугацаа (ms)')
-    plt.xlabel('Дундаж хугацаа (ms)')
-    plt.ylabel('Оролтын хэмжээ (n)')
+    plt.xlabel('Оролтын хэмжээ (n)')
+    plt.ylabel('Дундаж хугацаа (ms)')
     plt.grid(True)
+
+    formatter = FuncFormatter(format_number)
+    plt.gca().xaxis.set_major_formatter(formatter)
+
     plt.tight_layout()
     plt.show()
 
